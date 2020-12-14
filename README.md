@@ -27,7 +27,7 @@
 **例子：**
 
 ```javascript
-	/*
+    /*
      * 单例模式
      * @params {Function} 创建实例的方法
      * @return 唯一的实例
@@ -51,3 +51,36 @@
     console.log(createSingleObj() === createSingleObj()) // true
 ```
 
+### 策略模式
+
+**定义：** 定义一系列的算法，把它们一个个封装起来，并且使它们可以相互替换。
+
+**说明：** 定义一系列的算法，把它们各自封装成策略类，算法被封装在策略类内部的方法里。在客户对 Context 发起请求的时候，Context 总是把请求委托给这些策略对象中间的某一个进行计算。
+
+**使用场景：** 在程序设计中，我们也常常遇到类似的情况，要实现某一个功能有多种方案可以选择。比如一个压缩文件的程序，既可以选择 zip 算法，也可以选择 gzip 算法；不同绩效计算奖金；表单校验等等。
+
+**核心代码&&例子：**
+
+``` javascript
+    /*
+     * 策略模式
+     */
+    var strategies = { // 策略对象
+      'A': function (params) {
+        return params + 'A'
+      },
+      'B': function (params) {
+        return params + 'B'
+      },
+      'C': function (params) {
+        return params + 'C'
+      }
+    }
+
+    var useStrategy = function (strategy, params) {
+      return strategies[strategy](params)
+    }
+
+    console.log(useStrategy('A', '你好')) // 你好A
+    console.log(useStrategy('C', '你好')) // 你好C
+```

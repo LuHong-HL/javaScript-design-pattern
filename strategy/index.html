@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    /*
+     * 策略模式
+     */
+    var strategies = { // 策略对象
+      'A': function (params) {
+        return params + 'A'
+      },
+      'B': function (params) {
+        return params + 'B'
+      },
+      'C': function (params) {
+        return params + 'C'
+      }
+    }
+
+    var useStrategy = function (strategy, params) {
+      return strategies[strategy](params)
+    }
+
+    console.log(useStrategy('A', '你好')) // 你好A
+    console.log(useStrategy('C', '你好')) // 你好C
+
+  </script>
+</body>
+</html>
