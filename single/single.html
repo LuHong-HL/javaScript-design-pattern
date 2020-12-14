@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    /*
+     * 单例模式
+     * @params {Function} 创建实例的方法
+     * @return 唯一的实例
+     */
+    var getSingle = function (fn) {
+      var result
+      return function () {
+        return result || (result = fn.apply(this, arguments))
+      }
+    }
+
+    var createObj = function () {
+      return {
+        name: '我是单例模式,只创建一次'
+      }
+    }
+
+    var createSingleObj = getSingle(createObj)
+
+    console.log(createSingleObj()) // { name: '我是单例模式，只创建一次' }
+    console.log(createSingleObj() === createSingleObj()) // true
+  </script>
+</body>
+</html>
