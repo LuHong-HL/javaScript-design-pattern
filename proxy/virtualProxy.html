@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    /*
+     * 虚拟代理
+     * 图片预加载的实现
+     */
+    var image = (function () { // 展示图片
+      var imgNode = document.createElement('img')
+      document.body.appendChild(imgNode)
+      return function (src) {
+        imgNode.src = src
+      }
+    })()
+
+    var proxyImage = (function () { // 代理请求图片
+      var img = new Image()
+      img.onload = function () { // 图片请求完毕，直接展示
+        image(this.src)
+      }
+      return function (src) {
+        image('<本地图片地址>')
+        img.src = src
+      }
+    })()
+
+    proxyImage('<服务器的图片地址>')
+  </script>
+</body>
+</html>

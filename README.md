@@ -84,3 +84,77 @@
     console.log(useStrategy('A', '你好')) // 你好A
     console.log(useStrategy('C', '你好')) // 你好C
 ```
+
+### 代理模式
+
+**定义：** 代理模式是为一个对象提供一个代用品或占位符，以便控制对它的访问。
+
+**说明：** 代理模式的关键是，当客户不方便直接访问一个对象或者不满足需要的时候，提供一个替身对象来控制对这个对象的访问，客户实际上访问的是替身对象。替身对象对请求做出一些处理之后，再把请求转交给本体对象。我们在编写业务代码的时候，往往不需要去预先猜测是否需要使用代理模式。当真正发现不方便直接访问某个对象的时候，再编写代理也不迟。
+
+**使用场景：** 虚拟代理图片的预加载；缓存代理用于ajax异步请求数据；保护代理拦截不符合要求的请求等等。
+
+#### 虚拟代理
+
+**图片预加载技术例子：** 图片预加载是一种常用的技术，如果直接给某个 img 标签节点设置 src 属性， 由于图片过大或者网络不佳，图片的位置往往有段时间会是一片空白。常见的做法是先用一张 loading 图片占位，然后用异步的方式加载图片，等图片加载好了再把它填充到 img 节点里，这种 场景就很适合使用虚拟代理。
+
+``` javascript
+    /*
+     * 虚拟代理
+     * 图片预加载的实现
+     */
+    var image = (function () { // 展示图片
+      var imgNode = document.createElement('img')
+      document.body.appendChild(imgNode)
+      return function (src) {
+        imgNode.src = src
+      }
+    })()
+
+    var proxyImage = (function () { // 代理请求图片
+      var img = new Image()
+      img.onload = function () { // 图片请求完毕，直接展示
+        image(this.src)
+      }
+      return function (src) {
+        image('<本地图片地址>')
+        img.src = src
+      }
+    })()
+
+    proxyImage('<服务器的图片地址>')
+```
+
+#### 缓存代理
+
+**说明：** 缓存代理可以为一些开销大的运算结果提供暂时的存储，在下次运算时，如果传递进来的参 数跟之前一致，则可以直接返回前面存储的运算结果。下面的例子是同步的，如果是异步的话，可以通过回调函数把结果存放到代理对象缓存中。比如：ajax异步请求数据。
+
+**核心代码&&例子：**
+
+``` javascript
+    /*
+     * 缓存代理
+     * 乘积的缓存实现
+     */
+    var mult = function () { // 乘积函数
+      var result = 1
+      for(var i = 0, len = arguments.length; i < len; i++){
+        result *= arguments[i]
+      }
+      return result
+    }
+
+    var proxyMult = (function () { // 代理请求图片
+      var cache = {}
+      return function () {
+        var args = Array.prototype.join.call(arguments, ',')
+        if (args in cache) {
+          return cache[args]
+        }
+        return cache[args] = mult.apply(this, arguments)
+      }
+    })()
+
+    console.log(proxyMult(1, 2, 3, 4, 5)) // 120 //计算出来的结果
+    console.log(proxyMult(1, 2, 3, 4, 5)) // 120 //使用缓存获取的结果
+```
+

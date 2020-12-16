@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    /*
+     * 缓存代理
+     * 乘积的缓存实现
+     */
+    var mult = function () { // 乘积函数
+      var result = 1
+      for(var i = 0, len = arguments.length; i < len; i++){
+        result *= arguments[i]
+      }
+      return result
+    }
+
+    var proxyMult = (function () { // 代理请求图片
+      var cache = {}
+      return function () {
+        var args = Array.prototype.join.call(arguments, ',')
+        if (args in cache) {
+          return cache[args]
+        }
+        return cache[args] = mult.apply(this, arguments)
+      }
+    })()
+
+    console.log(proxyMult(1, 2, 3, 4, 5)) // 120 //计算出来的结果
+    console.log(proxyMult(1, 2, 3, 4, 5)) // 120 //使用缓存获取的结果
+  </script>
+</body>
+</html>
