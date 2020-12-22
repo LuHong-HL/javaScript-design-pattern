@@ -184,7 +184,7 @@
     each(['value1', 'value2', 'value3'], fn) // 0 "value1" 1 "value2" 2 "value3"
 ```
 
-**例子：** JavaScript 中的 [Array.prototype[@@iterator]()](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/@@iterator) 会返回一个迭代器对象，类似下面的例子，@@iterator 这个是 javascript 内置实现的
+**例子：** JavaScript 中的 `Array.prototype[@@iterator]()` 会返回一个迭代器对象，类似下面的例子，@@iterator 这个是 javascript 内置实现的
 
 ``` javascript
     /*
