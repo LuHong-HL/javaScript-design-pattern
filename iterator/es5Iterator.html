@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    /*
+     * 迭代器模式
+     * ES5语法模拟JavaScript中的迭代器
+     */
+    var createIteratorObj = function (items) { // 生成迭代器对象
+      var i = 0
+      return {
+        next: function () {
+          var done = (i >= items.length)
+          var value = !done ? items[i++] : undefined
+
+          return { // next() 方法返回结果对象 value是值，done为true的时候代表迭代结束
+            value: value,
+            done: done
+          }
+        }
+      }
+    }
+    var iterator = function (iteratorObj) { // 迭代器
+      var item = null
+      do {
+        item = iteratorObj.next() // 返回 {value: xxx, done: xxx}
+        console.log(item.value)
+      }while (!item.done)
+    }
+
+    var iteratorObj = createIteratorObj(['value1', 'value2', 'value3'])
+    iterator(iteratorObj) // value1 value2 value3 undefined
+
+  </script>
+</body>
+</html>

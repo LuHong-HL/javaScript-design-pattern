@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    /*
+     * 迭代器模式
+     * 迭代一个数组
+     */
+    var each = function (array, callback) { // 迭代器
+      for (var i = 0, len = array.length; i < len; i++) {
+        callback.call(array[i], i, array[i])
+      }
+    }
+
+    var fn = function (index, item) { // 数组的下标 index 数组的项 item
+      console.log(index, item)
+    }
+    each(['value1', 'value2', 'value3'], fn) // 0 "value1" 1 "value2" 2 "value3"
+  </script>
+</body>
+</html>

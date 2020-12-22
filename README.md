@@ -158,3 +158,61 @@
     console.log(proxyMult(1, 2, 3, 4, 5)) // 120 //使用缓存获取的结果
 ```
 
+### 迭代器模式
+
+**定义：** 迭代器模式是指提供一种方法顺序访问一个聚合对象中的各个元素，而又不需要暴露该对象的内部表示。
+
+**说明：** 迭代器模式可以把迭代的过程从业务逻辑中分离出来，在使用迭代器模式之后，即使不关心对象的内部构造，也可以按顺序访问其中的每个元素。迭代器模式是一种相对简单的模式，简单到很多时候我们都不认为它是一种设计模式。目前 的绝大部分语言都内置了迭代器。我们平时用的Array.property.forEach()，for...in...，for...of...这些都是迭代器。
+
+**使用场景：** 循环访问聚合对象中的各个元素
+
+**例子：**
+
+``` javascript
+    /*
+     * 迭代器模式
+     */
+    var each = function (array, callback) { // 迭代器
+      for (var i = 0, len = array.length; i < len; i++) {
+        callback.call(array[i], i, array[i])
+      }
+    }
+
+    var fn = function (index, item) { // 数组的下标 index 数组的项 item
+      console.log(index, item)
+    }
+    each(['value1', 'value2', 'value3'], fn) // 0 "value1" 1 "value2" 2 "value3"
+```
+
+**例子：** JavaScript 中的 [Array.prototype[@@iterator]()](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Array/@@iterator) 会返回一个迭代器对象，类似下面的例子，@@iterator 这个是 javascript 内置实现的
+
+``` javascript
+    /*
+     * 迭代器模式
+     * ES5语法模拟JavaScript中的迭代器
+     */
+    var createIteratorObj = function (items) { // 生成迭代器对象
+      var i = 0
+      return {
+        next: function () {
+          var done = (i >= items.length)
+          var value = !done ? items[i++] : undefined
+
+          return { // next() 方法返回结果对象 value是值，done为true的时候代表迭代结束
+            value: value,
+            done: done
+          }
+        }
+      }
+    }
+    var iterator = function (iteratorObj) { // 迭代器
+      var item = null
+      do {
+        item = iteratorObj.next() // 返回 {value: xxx, done: xxx}
+        console.log(item.value)
+      }while (!item.done)
+    }
+
+    var iteratorObj = createIteratorObj(['value1', 'value2', 'value3'])
+    iterator(iteratorObj) // value1 value2 value3 undefined
+```
