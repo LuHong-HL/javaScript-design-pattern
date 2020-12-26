@@ -216,3 +216,143 @@
     var iteratorObj = createIteratorObj(['value1', 'value2', 'value3'])
     iterator(iteratorObj) // value1 value2 value3 undefined
 ```
+
+### 发布-订阅模式
+
+**定义：** 发布—订阅模式又叫观察者模式，它定义对象间的一种一对多的依赖关系，当一个对象的状态发生改变时，所有依赖于它的对象都将得到通知。
+
+**说明：**发布—订阅模式的优点非常明显，一为时间上的解耦，二为对象之间的解耦。它的应用非常 广泛，既可以用在异步编程中，也可以帮助我们完成更松耦合的代码编写。发布—订阅模式还可 以用来帮助实现一些别的设计模式，比如中介者模式。从架构上来看，无论是 MVC 还是 MVVM， 都少不了发布—订阅模式的参与，而且 JavaScript 本身也是一门基于事件驱动的语言。 当然，发布—订阅模式也不是完全没有缺点。创建订阅者本身要消耗一定的时间和内存，而 且当你订阅一个消息后，也许此消息最后都未发生，但这个订阅者会始终存在于内存中。另外， 发布—订阅模式虽然可以弱化对象之间的联系，但如果过度使用的话，对象和对象之间的必要联系也将被深埋在背后，会导致程序难以跟踪维护和理解。特别是有多个发布者和订阅者嵌套到一 起的时候，要跟踪一个 bug 不是件轻松的事情。 在 JavaScript 开发中，我们一般用事件模型来替代传统的发布—订阅模式。
+
+**例子：** 
+
+``` javascript
+    /*
+     * 发布-订阅者模式
+     * 需要手动安装的对象
+     */
+    var event = { // 发布-订阅者事件对象
+      clientList: [], // 订阅信息列表
+      listen: function (key, fn) { // 订阅事件
+        if (!this.clientList[key]) {
+          this.clientList[key] = []
+        }
+        this.clientList[key].push(fn)
+      },
+      trigger: function () { // 发布事件
+        var key = Array.prototype.shift.call(arguments) // 取出第一个事件名参数，剩余的是数据参数
+        var fns = this.clientList[key]
+        if (!fns || fns.length === 0) { // 没有绑定订阅信息
+          return false
+        }
+        for ( var i = 0, fn; fn = fns[i]; i++ ) { // 遍历对应订阅事件的回调函数
+          fn.apply(this, arguments)
+        }
+      },
+      remove: function (key, fn) { // 取消订阅事件
+        var fns = this.clientList[key]
+        if (!fns) { // key对应的消息没有被订阅，则直接返回
+          return false
+        }
+        if (!fn) { // 没有传入具体的回调函数，则取消对应key的所有订阅
+         return fns && (fns.length = 0)
+        }
+        // 只需要取消相应的订阅回调函数
+        for (var len = fns.length - 1; len >= 0; len--) {
+          var _fn = fns[len]
+          if (_fn === fn) {
+            fns.splice(len, 1) // 删除订阅的回调函数
+          }
+        }
+      }
+    }
+    
+    var installEvent = function (obj) { // 给对象安装发布-订阅功能
+      for (var i in event) { // 遍历发布-订阅者事件对象
+        obj[i] = event[i]
+      }
+    }
+
+    // 使用
+    var obj = {}
+    installEvent(obj) // 为obj安装发布-订阅功能
+    var myFn1 = function (params) {
+      console.log(params)
+    }
+    var myFn2 = function (params) {
+      console.log(params)
+    }
+    obj.listen('myClick', myFn1) // 添加订阅
+    obj.listen('myClick', myFn2)
+    obj.trigger('myClick', 'success') // 发布订阅 输出：success success
+    obj.remove('myClick', myFn1) // 取消订阅
+    obj.trigger('myClick', 'afterRemove') // 发布订阅 输出：afterRemove
+```
+
+**核心代码 && 例子： **
+
+``` javascript
+    /*
+     * 发布-订阅者模式
+     * 全局的订阅-发布对象
+     */
+    var event = (function () {
+      var clientList = [] // 订阅信息列表
+
+      var listen = function (key, fn) { // 订阅事件
+        debugger
+        if (!clientList[key]) {
+          clientList[key] = []
+        }
+        clientList[key].push(fn)
+      }
+
+     var trigger = function () { // 发布事件
+        var key = Array.prototype.shift.call(arguments) // 取出第一个事件名参数，剩余的是数据参数
+        var fns = clientList[key]
+        if (!fns || fns.length === 0) { // 没有绑定订阅信息
+          return false
+        }
+        for ( var i = 0, fn; fn = fns[i]; i++ ) { // 遍历对应订阅事件的回调函数
+          fn.apply(this, arguments)
+        }
+      }
+
+      var remove = function (key, fn) { // 取消订阅事件
+        var fns = clientList[key]
+        if (!fns) { // key对应的消息没有被订阅，则直接返回
+          return false
+        }
+        if (!fn) { // 没有传入具体的回调函数，则取消对应key的所有订阅
+         return fns && (fns.length = 0)
+        }
+        // 只需要取消相应的订阅回调函数
+        for (var len = fns.length - 1; len >= 0; len--) {
+          var _fn = fns[len]
+          if (_fn === fn) {
+            fns.splice(len, 1) // 删除订阅的回调函数
+          }
+        }
+      }
+
+      return { // 暴露出去的方法
+        listen,
+        trigger,
+        remove
+      }
+    })()
+    
+    // 使用
+    var myFn1 = function (params) {
+      console.log(params)
+    }
+    var myFn2 = function (params) {
+      console.log(params)
+    }
+    event.listen('myClick', myFn1) // 添加订阅
+    event.listen('myClick', myFn2)
+    event.trigger('myClick', 'success') // 发布订阅 输出：success success
+    event.remove('myClick', myFn1) // 取消订阅
+    event.trigger('myClick', 'afterRemove') // 发布订阅 输出：afterRemove
+```
+
+**提醒：** 必须先订阅再发布吗？上面的代码如果先发布再订阅的话，发布的消息就会丢失，无法成功订阅到。那如果我们要实现可以先发布再订阅的功能怎么办？为了满足这个需求，我们要建立一个存放离线事件的堆栈，当事件发布的时候，如果此时还没有订阅者来订阅这个事件，我们暂时把发布事件的动作包裹在一个函数里，这些包装函数将被存入堆栈中，等到终于有对象来订阅此事件的时候，我们将遍历堆栈并且依次执行这些包装函数，也就是重新发布里面的事件。当然离线事件的生命周期只有一次，所以刚才的操作我们只能进行一次。

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    /*
+     * 发布-订阅者模式
+     * 全局的订阅-发布对象
+     */
+    var event = (function () {
+      var clientList = [] // 订阅信息列表
+
+      var listen = function (key, fn) { // 订阅事件
+        debugger
+        if (!clientList[key]) {
+          clientList[key] = []
+        }
+        clientList[key].push(fn)
+      }
+
+     var trigger = function () { // 发布事件
+        var key = Array.prototype.shift.call(arguments) // 取出第一个事件名参数，剩余的是数据参数
+        var fns = clientList[key]
+        if (!fns || fns.length === 0) { // 没有绑定订阅信息
+          return false
+        }
+        for ( var i = 0, fn; fn = fns[i]; i++ ) { // 遍历对应订阅事件的回调函数
+          fn.apply(this, arguments)
+        }
+      }
+
+      var remove = function (key, fn) { // 取消订阅事件
+        var fns = clientList[key]
+        if (!fns) { // key对应的消息没有被订阅，则直接返回
+          return false
+        }
+        if (!fn) { // 没有传入具体的回调函数，则取消对应key的所有订阅
+         return fns && (fns.length = 0)
+        }
+        // 只需要取消相应的订阅回调函数
+        for (var len = fns.length - 1; len >= 0; len--) {
+          var _fn = fns[len]
+          if (_fn === fn) {
+            fns.splice(len, 1) // 删除订阅的回调函数
+          }
+        }
+      }
+
+      return { // 暴露出去的方法
+        listen,
+        trigger,
+        remove
+      }
+    })()
+    
+    // 使用
+    var myFn1 = function (params) {
+      console.log(params)
+    }
+    var myFn2 = function (params) {
+      console.log(params)
+    }
+    event.listen('myClick', myFn1) // 添加订阅
+    event.listen('myClick', myFn2)
+    event.trigger('myClick', 'success') // 发布订阅 输出：success success
+    event.remove('myClick', myFn1) // 取消订阅
+    event.trigger('myClick', 'afterRemove') // 发布订阅 输出：afterRemove
+
+  </script>
+</body>
+</html>
