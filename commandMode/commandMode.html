@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    /*
+     * 命令模式
+     * 宏命令例子
+     */
+    var closeDoorCommand = {
+      execute: function () {
+        console.log('关门')
+      }
+    }
+    var openFanCommand = {
+      execute: function () {
+        console.log('开风扇')
+      }
+    }
+    var openTelevisionCommand = {
+      execute: function () {
+        console.log('开电视机')
+      }
+    }
+
+    var MacroCommand = function () { // 宏命令
+      return {
+        commandLists: [], // 命令列表
+        add: function (command) {
+          this.commandLists.push(command)
+        },
+        execute: function () {
+          var command // 命令 function
+          for (var i = 0, len = this.commandLists.length; i < len; i++) {
+            command = this.commandLists[i]
+            command.execute()
+          }
+        }
+      }
+    }
+
+    // 使用
+    var macroCommand = MacroCommand()
+    macroCommand.add(closeDoorCommand)
+    macroCommand.add(openFanCommand)
+    macroCommand.add(openTelevisionCommand)
+    macroCommand.execute() // 输出：关门 开风扇 开电视机
+
+  </script>
+</body>
+</html>

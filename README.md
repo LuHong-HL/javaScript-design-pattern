@@ -356,3 +356,59 @@
 ```
 
 **提醒：** 必须先订阅再发布吗？上面的代码如果先发布再订阅的话，发布的消息就会丢失，无法成功订阅到。那如果我们要实现可以先发布再订阅的功能怎么办？为了满足这个需求，我们要建立一个存放离线事件的堆栈，当事件发布的时候，如果此时还没有订阅者来订阅这个事件，我们暂时把发布事件的动作包裹在一个函数里，这些包装函数将被存入堆栈中，等到终于有对象来订阅此事件的时候，我们将遍历堆栈并且依次执行这些包装函数，也就是重新发布里面的事件。当然离线事件的生命周期只有一次，所以刚才的操作我们只能进行一次。
+
+### 命令模式
+
+**定义：** 命令模式中的命令（command）指的是一个执行某些特定事情的指令。
+
+**说明：** 有时候需要向某些对象发送请求，但是并不知道请求的接收者是谁，也不知道被请求的操作是什么，此时希望用一种松耦合的方式来设计软件，使得请求发送者和请求接收者能够消除彼此之间的耦合关系。
+
+**核心代码 && 例子：** 
+
+宏命令例子：宏命令是一组命令的集合，通过执行宏命令的方式，可以一次执行一批命令，他是命令模式与组合模式的联用产物。想象一下，家里有一个万能遥控器，每天回家的时候，只要按一个特别的按钮，它就会帮我们关上房间门，然后开空调，最后打开电视。
+
+``` javascript 
+    /*
+     * 命令模式
+     * 宏命令例子
+     */
+    var closeDoorCommand = {
+      execute: function () {
+        console.log('关门')
+      }
+    }
+    var openFanCommand = {
+      execute: function () {
+        console.log('开风扇')
+      }
+    }
+    var openTelevisionCommand = {
+      execute: function () {
+        console.log('开电视机')
+      }
+    }
+
+    var MacroCommand = function () { // 宏命令
+      return {
+        commandLists: [], // 命令列表
+        add: function (command) {
+          this.commandLists.push(command)
+        },
+        execute: function () {
+          var command // 命令 function
+          for (var i = 0, len = this.commandLists.length; i < len; i++) {
+            command = this.commandLists[i]
+            command.execute()
+          }
+        }
+      }
+    }
+
+    // 使用
+    var macroCommand = MacroCommand()
+    macroCommand.add(closeDoorCommand)
+    macroCommand.add(openFanCommand)
+    macroCommand.add(openTelevisionCommand)
+    macroCommand.execute() // 输出：关门 开风扇 开电视机
+```
+
