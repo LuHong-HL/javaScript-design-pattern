@@ -412,3 +412,71 @@
     macroCommand.execute() // 输出：关门 开风扇 开电视机
 ```
 
+### 组合模式
+
+**定义：** 组合模式就是用小的子对象来构建更大的对象，而这些小的子对象本身也许是由更
+小的“孙对象”构成的。
+
+**说明：** 组合模式可以让我们使用树形方式创 建对象的结构。我们可以把相同的操作应用在组合对象和单个对象上。在大多数情况下，我们都可以忽略掉组合对象和单个对象之间的差别，从而用一致的方式来处理它们。 然而，组合模式并不是完美的，它可能会产生一个这样的系统：系统中的每个对象看起来都与其他对象差不多。它们的区别只有在运行的时候会才会显现出来，这会使代码难以理解。此外， 如果通过组合模式创建了太多的对象，那么这些对象可能会让系统负担不起。
+
+**使用场景：** 扫描文件夹、遥控器命令
+
+**核心代码&&例子：** 
+
+基本对象可以被组合成更复杂的组合对象，组合对象又可以被组合， 这样不断递归下去，这棵树的结构可以支持任意多的复杂度。在树最终被构造完成之后，让整颗树最终运转起来的步骤非常简单，只需要调用最上层对象的 `execute` 方法。每当对最上层的对象 进行一次请求时，实际上是在对整个树进行深度优先的搜索，而创建组合对象的程序员并不关心这些内在的细节，往这棵树里面添加一些新的节点对象是非常容易的事情。
+
+``` javascript 
+    /*
+     * 命令模式
+     * 展示宏命令中组合模式的强大例子
+     */
+    var closeDoorCommand = {
+      execute: function () {
+        console.log('关门')
+      }
+    }
+    var openFanCommand = {
+      execute: function () {
+        console.log('开风扇')
+      }
+    }
+    var openTelevisionCommand = {
+      execute: function () {
+        console.log('开电视机')
+      }
+    }
+
+    var openSoundCommand = {
+      execute: function () {
+        console.log('开音响')
+      }
+    }
+
+    var MacroCommand = function () { // 宏命令
+      return {
+        commandLists: [], // 命令列表
+        add: function (command) {
+          this.commandLists.push(command)
+        },
+        execute: function () {
+          var command // 命令 function
+          for (var i = 0, len = this.commandLists.length; i < len; i++) {
+            command = this.commandLists[i]
+            command.execute()
+          }
+        }
+      }
+    }
+
+    // 使用
+    var macroCommand1 = MacroCommand()
+    macroCommand1.add(openTelevisionCommand)
+    macroCommand1.add(openSoundCommand)
+
+    var macroCommand2 = MacroCommand()
+    macroCommand2.add(closeDoorCommand)
+    macroCommand2.add(openFanCommand)
+    macroCommand2.add(macroCommand1)
+    macroCommand1.execute() // 输出：开电视机 开音响
+    macroCommand2.execute() // 输出：关门 开风扇 开电视机 开音响
+```
