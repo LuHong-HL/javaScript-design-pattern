@@ -480,3 +480,61 @@
     macroCommand1.execute() // 输出：开电视机 开音响
     macroCommand2.execute() // 输出：关门 开风扇 开电视机 开音响
 ```
+
+### 模板方法模式
+
+**说明：** 模板方法模式是一种只需使用继承就可以实现的非常简单的模式。模板方法模式由两部分结构组成，第一部分是抽象父类，第二部分是具体的实现子类。通常在抽象父类中封装了子类的算法框架，包括实现一些公共方法以及封装子类中所有方法的执行顺序。子类通过继承这个抽象类，也继承了整个算法结构，并且可以选择重写父类的方法。 
+
+**核心代码&&例子：** 
+
+``` javascript 
+    /*
+     * 模板方法模式
+     * 咖啡和茶的经典例子
+     */
+     var Beverage = function () {}
+     Beverage.prototype.boilWater = function () { // 煮水
+        console.log('把水煮沸')
+     }
+     Beverage.prototype.brew = function () { // 冲泡
+        throw new Error('子类必须重写brew方法') // 防止没有重写此方法
+     }
+     Beverage.prototype.pourInCup = function () { // 倒进杯子
+        throw new Error('子类必须重写pourInCup方法')
+     }
+     Beverage.prototype.addCondiments = function () { // 添加调味料
+        throw new Error('子类必须重写addCondiments方法')
+     }
+     Beverage.prototype.customerWantsCondiments = function () { // 自定义是否需要调料 hook
+        return true // 默认需要调料
+     }
+     Beverage.prototype.init = function () {
+       this.boilWater()
+       this.brew()
+       this.pourInCup()
+       if (this.customerWantsCondiments()) { // 如果钩子函数返回true，则需要调料
+          this.addCondiments()
+       }
+     }
+
+     var CoffeeWithHook = function () {}
+     CoffeeWithHook.prototype = new Beverage() // 继承饮料的类
+     CoffeeWithHook.prototype.brew = function () {
+       console.log('用沸水冲泡咖啡')
+     }
+     CoffeeWithHook.prototype.pourInCup = function () {
+       console.log('把咖啡倒进杯子')
+     }
+     CoffeeWithHook.prototype.addCondiments = function () {
+       console.log('加糖和牛奶')
+     }
+     CoffeeWithHook.prototype.customerWantsCondiments = function () {
+       return window.confirm('请问需要调料吗？')
+     }
+
+     var coffeeWithHook = new CoffeeWithHook() // 创建咖啡的实例
+     //确认需要调料 输出：把水煮沸 用沸水冲泡咖啡 把咖啡倒进杯子 加糖和牛奶
+     //不需要调料 输出：把水煮沸 用沸水冲泡咖啡 把咖啡倒进杯子
+     coffeeWithHook.init() // 初始化实例
+```
+

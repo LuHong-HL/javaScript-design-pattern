@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    /*
+     * 模板方法模式
+     * 咖啡和茶的经典例子
+     */
+     var Beverage = function () {}
+     Beverage.prototype.boilWater = function () { // 煮水
+        console.log('把水煮沸')
+     }
+     Beverage.prototype.brew = function () { // 冲泡
+        throw new Error('子类必须重写brew方法') // 防止没有重写此方法
+     }
+     Beverage.prototype.pourInCup = function () { // 倒进杯子
+        throw new Error('子类必须重写pourInCup方法')
+     }
+     Beverage.prototype.addCondiments = function () { // 添加调味料
+        throw new Error('子类必须重写addCondiments方法')
+     }
+     Beverage.prototype.customerWantsCondiments = function () { // 自定义是否需要调料 hook
+        return true // 默认需要调料
+     }
+     Beverage.prototype.init = function () {
+       this.boilWater()
+       this.brew()
+       this.pourInCup()
+       if (this.customerWantsCondiments()) { // 如果钩子函数返回true，则需要调料
+          this.addCondiments()
+       }
+     }
+
+     var CoffeeWithHook = function () {}
+     CoffeeWithHook.prototype = new Beverage() // 继承饮料的类
+     CoffeeWithHook.prototype.brew = function () {
+       console.log('用沸水冲泡咖啡')
+     }
+     CoffeeWithHook.prototype.pourInCup = function () {
+       console.log('把咖啡倒进杯子')
+     }
+     CoffeeWithHook.prototype.addCondiments = function () {
+       console.log('加糖和牛奶')
+     }
+     CoffeeWithHook.prototype.customerWantsCondiments = function () {
+       return window.confirm('请问需要调料吗？')
+     }
+
+     var coffeeWithHook = new CoffeeWithHook() // 创建咖啡的实例
+     //确认需要调料 输出：把水煮沸 用沸水冲泡咖啡 把咖啡倒进杯子 加糖和牛奶
+     //不需要调料 输出：把水煮沸 用沸水冲泡咖啡 把咖啡倒进杯子
+     coffeeWithHook.init() // 初始化实例
+
+
+  </script>
+</body>
+</html>
