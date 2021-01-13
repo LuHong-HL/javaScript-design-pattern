@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    /*
+     * 职责链模式
+     * 同步职责链
+     * 优惠券例子
+     */
+     var Chain = function (fn) { // 职责链的类
+       this.fn = fn
+       this.successor = null // 继承者
+     }
+     Chain.prototype.setNextSuccessor = function (successor) { // 设置下一个继承者
+      return this.successor = successor
+     }
+     Chain.prototype.passRequest = function () { // 处理的请求
+       var ret = this.fn.apply(this, arguments)
+       if (ret === 'nextSuccessor' ) {
+        return this.successor && this.successor.passRequest.apply(this.successor, arguments)
+       }
+       return ret
+     }
+  
+     /**
+      * @pramas {Number} orderType 订单类型
+      * @params {Boolean} isPay 是否已支付定金
+      * @params {Number} stock 库存
+      */
+     var order500 = function (orderType, isPay, stock) { // 500定金的订单
+        if(orderType === 1 && isPay === true) {
+          console.log('已支付500元定金，得到100优惠券')
+        }else {
+          return 'nextSuccessor' // 下一个节点
+        }
+     }
+     var order200 = function (orderType, isPay, stock) { // 200定金的订单
+        if(orderType === 2 && isPay === true) {
+          console.log('已支付200元定金，得到50优惠券')
+        }else {
+          return 'nextSuccessor' // 下一个节点
+        }
+     }
+     var orderNormal = function (orderType, isPay, stock) { // 无定金的订单
+        if(stock > 0) {
+          console.log('无优惠券购买')
+        }else {
+          console.log('库存不足')
+        }
+     }
+
+     var chainOrder500 = new Chain(order500) // 创建职责链节点实例
+     var chainOrder200 = new Chain(order200)
+     var chainOrderNormal = new Chain(orderNormal)
+
+     chainOrder500.setNextSuccessor(chainOrder200).setNextSuccessor(chainOrderNormal) // 设置职责链的顺序
+
+     // 测试
+     chainOrder500.passRequest( 1, true, 500 ); // 输出：已支付500元定金，得到100优惠券
+     chainOrder500.passRequest( 2, true, 500 ); // 输出：已支付200元定金，得到50优惠券
+     chainOrder500.passRequest( 3, true, 500 ); // 输出：无优惠券购买
+     chainOrder500.passRequest( 1, false, 0 ); // 输出：库存不足
+     
+  </script>
+</body>
+</html>

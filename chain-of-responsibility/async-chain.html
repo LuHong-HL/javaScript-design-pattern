@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    /*
+     * 职责链模式
+     * 异步职责链
+     */
+     var Chain = function (fn) { // 职责链的类
+       this.fn = fn
+       this.successor = null // 继承者
+     }
+     Chain.prototype.setNextSuccessor = function (successor) { // 设置下一个继承者
+      return this.successor = successor
+     }
+     Chain.prototype.passRequest = function () { // 处理的请求
+       var ret = this.fn.apply(this, arguments)
+       if (ret === 'nextSuccessor' ) {
+        return this.successor && this.successor.passRequest.apply(this.successor, arguments)
+       }
+       return ret
+     }
+     Chain.prototype.next = function () { // 手动操作将请求传递给下一个节点
+      return this.successor && this.successor.passRequest.apply(this.successor, arguments)
+     }
+     
+     var chainFn1 = new Chain(function() { // 创建职责链类的实例
+       console.log(1)
+       return 'nextSuccessor'
+     })
+     var chainFn2 = new Chain(function() {
+       console.log(2)
+       setTimeout(() => {
+         this.next() // 手动传递请求给职责链的下个节点
+       }, 100)
+     })
+     var chainFn3 = new Chain(function() {
+       console.log(3)
+     })
+
+     chainFn1.setNextSuccessor(chainFn2).setNextSuccessor(chainFn3) // 设置职责链的顺序
+
+     chainFn1.passRequest() // 输出：1 2 3
+
+     
+  </script>
+</body>
+</html>

@@ -667,3 +667,127 @@
       }
     ])
 ```
+
+### 职责链模式
+
+**定义：** 使多个对象都有机会处理请求，从而避免请求的发送者和接收者之间 的耦合关系，将这些对象连成一条链，并沿着这条链传递该请求，直到有一个对象处理它为止。
+
+**说明：** 职责链模式的名字非常形象，一系列可能会处理请求的对象被连接成一条链，请求在这些对象之间依次传递，直到遇到一个可以处理它的对象，我们把这些对象称为链中的节点。
+
+**使用场景：** 优惠券
+
+**同步职责链核心代码&&例子：** 
+
+优惠卷的三种优惠情况：
+
+- 已支付500定金，则有100优惠券
+- 已支付200定金，则有50优惠卷
+- 没有支付任何定金，则没有优惠卷
+
+``` javaScript
+    /*
+     * 职责链模式
+     * 同步职责链
+     * 优惠券例子
+     */
+     var Chain = function (fn) { // 职责链的类
+       this.fn = fn
+       this.successor = null // 继承者
+     }
+     Chain.prototype.setNextSuccessor = function (successor) { // 设置下一个继承者
+      return this.successor = successor
+     }
+     Chain.prototype.passRequest = function () { // 处理的请求
+       var ret = this.fn.apply(this, arguments)
+       if (ret === 'nextSuccessor' ) {
+        return this.successor && this.successor.passRequest.apply(this.successor, arguments)
+       }
+       return ret
+     }
+  
+     /**
+      * @pramas {Number} orderType 订单类型
+      * @params {Boolean} isPay 是否已支付定金
+      * @params {Number} stock 库存
+      */
+     var order500 = function (orderType, isPay, stock) { // 500定金的订单
+        if(orderType === 1 && isPay === true) {
+          console.log('已支付500元定金，得到100优惠券')
+        }else {
+          return 'nextSuccessor' // 下一个节点
+        }
+     }
+     var order200 = function (orderType, isPay, stock) { // 200定金的订单
+        if(orderType === 2 && isPay === true) {
+          console.log('已支付200元定金，得到50优惠券')
+        }else {
+          return 'nextSuccessor' // 下一个节点
+        }
+     }
+     var orderNormal = function (orderType, isPay, stock) { // 无定金的订单
+        if(stock > 0) {
+          console.log('无优惠券购买')
+        }else {
+          console.log('库存不足')
+        }
+     }
+
+     var chainOrder500 = new Chain(order500) // 创建职责链节点实例
+     var chainOrder200 = new Chain(order200)
+     var chainOrderNormal = new Chain(orderNormal)
+
+     chainOrder500.setNextSuccessor(chainOrder200).setNextSuccessor(chainOrderNormal) // 设置职责链的顺序
+
+     // 测试
+     chainOrder500.passRequest( 1, true, 500 ); // 输出：已支付500元定金，得到100优惠券
+     chainOrder500.passRequest( 2, true, 500 ); // 输出：已支付200元定金，得到50优惠券
+     chainOrder500.passRequest( 3, true, 500 ); // 输出：无优惠券购买
+     chainOrder500.passRequest( 1, false, 0 ); // 输出：库存不足
+```
+
+**异步职责链核心代码&&例子：** 
+
+如果职责链的节点中存在异步请求，直接返回`"nextSuccessor"`是不行的。解决方案：可以给Chain类增加一个原型方法`Chain.prototype.next`，手动的传递请求给职责链的下一个请求。
+
+``` javascript
+    /*
+     * 职责链模式
+     * 异步职责链
+     */
+     var Chain = function (fn) { // 职责链的类
+       this.fn = fn
+       this.successor = null // 继承者
+     }
+     Chain.prototype.setNextSuccessor = function (successor) { // 设置下一个继承者
+      return this.successor = successor
+     }
+     Chain.prototype.passRequest = function () { // 处理的请求
+       var ret = this.fn.apply(this, arguments)
+       if (ret === 'nextSuccessor' ) {
+        return this.successor && this.successor.passRequest.apply(this.successor, arguments)
+       }
+       return ret
+     }
+     Chain.prototype.next = function () { // 手动操作将请求传递给下一个节点
+      return this.successor && this.successor.passRequest.apply(this.successor, arguments)
+     }
+     
+     var chainFn1 = new Chain(function() { // 创建职责链类的实例
+       console.log(1)
+       return 'nextSuccessor'
+     })
+     var chainFn2 = new Chain(function() {
+       console.log(2)
+       setTimeout(() => {
+         this.next() // 手动传递请求给职责链的下个节点
+       }, 100)
+     })
+     var chainFn3 = new Chain(function() {
+       console.log(3)
+     })
+
+     chainFn1.setNextSuccessor(chainFn2).setNextSuccessor(chainFn3) // 设置职责链的顺序
+
+     chainFn1.passRequest() // 输出：1 2 3
+```
+
