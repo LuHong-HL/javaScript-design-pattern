@@ -538,3 +538,132 @@
      coffeeWithHook.init() // 初始化实例
 ```
 
+### 享元模式 
+
+**说明：** 享元（flyweight）模式是一种用于性能优化的模式，“fly”在这里是苍蝇的意思，意为蝇量级。享元模式的核心是运用共享技术来有效支持大量细粒度的对象。如果系统中因为创建了大量类似的对象而导致内存占用过高，享元模式就非常有用了。在 JavaScript 中，浏览器特别是移动端的浏览器分配的内存并不算多，如何节省内存就成了一件非 常有意义的事情。享元模式是为解决性能问题而生的模式，这跟大部分模式的诞生原因都不一样。在一个存在 大量相似对象的系统中，享元模式可以很好地解决大量对象带来的性能问题。
+
+**使用场景：** 文件上传、对象池
+
+**核心代码&&例子：** 
+
+``` javascript 
+    /*
+     * 享元模式
+     * 文件上传例子
+     */
+
+    /**
+     * Upload类
+     * 内外部状态分离
+     * @params {String} uploadType 上传文件的类型
+     */
+    var Upload = function (uploadType) { // uploadType 内部状态，不变
+      this.uploadType = uploadType
+    }
+
+    Upload.prototype.delFile = function (id) { // id 外部状态，变化
+      uploadManage.setExternalState(id, this)
+      if (this.fileSize < 3000) { // 当文件小于3000KB时，直接删除
+        return this.dom.parentNode.removeChild(this.dom)
+      }
+      if (window.confirm('确定要删除文件吗？' + this.fileName)){ // 用户确认后删除
+        return this.dom.parentNode.removeChild(this.dom)
+      }
+    }
+
+    /**
+     * upload 创建工厂
+     */
+    var UploadFactory = (function () { // upload 对象实例化工厂
+      var createFlyWeightObjs = {}
+
+      return {
+        create: function (uploadType) { // 创建一个实例
+          if(createFlyWeightObjs[uploadType]) { // 如果享元对象中有此类型数据，则直接返回，否则创建一个新的实例，并保存到享元对象上
+            return createFlyWeightObjs[uploadType]
+          }
+          return createFlyWeightObjs[uploadType] = new Upload(uploadType)
+        }
+      }
+    })()
+
+    /**
+     * 外部状态管理器
+     * @pramas {Number} id 标识每个文件的唯一 id
+     * @params {String} uploadType 上传文件的类型
+     * @params {String} fileName 上传文件名称
+     * @params {Number} fileSize 上传文件大小
+     * @params {Object} flyWeightObj 享元对象
+     */
+    var uploadManage = (function () {
+      var uploadDatabase = {}
+
+      return {
+        add: function (id, uploadType, fileName, fileSize) { // 添加上传的文件
+          var flyWeightObj = UploadFactory.create(uploadType) // 创建一个upload 实例
+
+          var dom = document.createElement('div') // 创建文件列表元素
+          dom.innerHTML = '<span>文件名称：' + fileName + ', 文件大小：' + fileSize + '</span>' + '<button class="delFile">删除</button>'
+          dom.querySelector('.delFile').onclick = function () {
+            flyWeightObj.delFile(id)
+          }
+          document.body.appendChild(dom)
+
+          uploadDatabase[id] = { // 保存 upload 对象的外部状态
+            fileName: fileName,
+            fileSize: fileSize,
+            dom: dom
+          }
+          return flyWeightObj
+        },
+        setExternalState: function (id, flyWeightObj) { // 设置外部状态
+          var uploadData = uploadDatabase[id]
+          for (var i in uploadData) {
+            flyWeightObj[i] = uploadData[i]
+          }
+        }
+      }
+    })()
+
+    /**
+     * 开始上传文件
+     */
+    var id = 0
+    window.startUpload = function (uploadType, files) {
+      for(var i = 0, file; files[i]; i++) {
+        file = files[i]
+        var uploadObj = uploadManage.add( ++id, uploadType, file.fileName, file.fileSize)
+      }
+    }
+
+    // 测试例子
+    startUpload('plugin', [
+      {
+        fileName: '1.txt',
+        fileSize: 1000
+      },
+      {
+        fileName: '2.txt',
+        fileSize: 2000
+      },
+      {
+        fileName: '3.txt',
+        fileSize: 3000
+      }
+    ])
+
+    startUpload('flash', [
+      {
+        fileName: '4.txt',
+        fileSize: 4000
+      },
+      {
+        fileName: '5.txt',
+        fileSize: 5000
+      },
+      {
+        fileName: '6.txt',
+        fileSize: 6000
+      }
+    ])
+```
