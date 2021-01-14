@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    /*
+     * 装饰者模式
+     * 飞机大战发射不同子弹的例子
+     */
+     var Plane = function () {} // 飞机类 
+     Plane.prototype.fire = function () { // 开火
+       console.log('发射普通子弹')
+     }
+
+     var MissileDecorator = function (plane) { // 导弹装饰者
+      this.plane = plane
+     }
+     MissileDecorator.prototype.fire = function () {
+       this.plane.fire()
+       console.log('发射导弹')
+     }
+
+     var AtomDecorator = function (plane) { // 原子弹装饰者
+      this.plane = plane
+     }
+     AtomDecorator.prototype.fire = function () {
+       this.plane.fire()
+       console.log('发射原子弹')
+     }
+
+     // 输出：发射普通子弹 发射导弹 发射原子弹
+     var plane = new Plane()
+     plane = new MissileDecorator( plane )
+     plane = new AtomDecorator( plane )
+     plane.fire()
+
+  </script>
+</body>
+</html>

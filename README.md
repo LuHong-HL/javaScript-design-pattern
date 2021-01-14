@@ -793,8 +793,6 @@
 
 ### 中介者模式
 
-**定义：** 
-
 **说明：** 中介者模式的作用就是解除对象与对象之间的紧耦合关系。增加一个中介者对象后，所有的相关对象都通过中介者对象来通信，而不是互相引用，所以当一个对象发生改变时，只需要通知中介者对象即可。中介者使各对象之间耦合松散，而且可以独立地改变它们之间的交互。中介者模式使网状的多对多关系变成了相对简单的一对多关系。不过，中介者模式也存在一些缺点。其中，最大的缺点是系统中会新增一个中介者对象，因 为对象之间交互的复杂性，转移成了中介者对象的复杂性，使得中介者对象经常是巨大的。中介者对象自身往往就是一个难以维护的对象。一般来说， 如果对象之间的复杂耦合确实导致调用和维护出现了困难，而且这些耦合度随项目的变化呈指数增长曲线，那我们就可以考虑用中介者模式来重构代码。
 
 **使用场景：** 多人竞技游戏
@@ -936,3 +934,120 @@
       player3.die()
       player4.die()
 ```
+
+### 装饰者模式 
+
+**定义：**  给对象动态地增加职责的方式称为装 饰者（decorator）模式。
+
+**说明：**装饰者模式能够在不改 变对象自身的基础上，在程序运行期间给对象动态地添加职责。跟继承相比，装饰者是一种 更轻便灵活的做法，这是一种“即用即付”的 方式。代理模式和装饰者模式最重要的区别在于它们的意图和设计目的。代理模式的目的是，当直接访问本体不方便或者不符合需要时，为这个本体提供一个替代者。本体定义了关键功能，而代理提供或拒绝对它的访问，或者在访问本体之前做一些额外的事情。装饰者模式的作用就是为对象动态加入行为。换句话说，代理模式强调一种关系（Proxy 与它的实体之间的关系），这种关系可以静态的表达，也就是说，这种关系在一开始就可以被确定。而装饰者模式用于一开始不能确 定对象的全部功能时。代理模式通常只有一层代理-本体的引用，而装饰者模式经常会形成一条长长的装饰链。
+
+**使用场景：** 
+
+**核心代码&&例子：** 
+
+``` javascript 
+    /*
+     * 装饰者模式
+     * 飞机大战发射不同子弹的例子
+     */
+     var Plane = function () {} // 飞机类 
+     Plane.prototype.fire = function () { // 开火
+       console.log('发射普通子弹')
+     }
+
+     var MissileDecorator = function (plane) { // 导弹装饰者
+      this.plane = plane
+     }
+     MissileDecorator.prototype.fire = function () {
+       this.plane.fire()
+       console.log('发射导弹')
+     }
+
+     var AtomDecorator = function (plane) { // 原子弹装饰者
+      this.plane = plane
+     }
+     AtomDecorator.prototype.fire = function () {
+       this.plane.fire()
+       console.log('发射原子弹')
+     }
+
+     // 输出：发射普通子弹 发射导弹 发射原子弹
+     var plane = new Plane()
+     plane = new MissileDecorator( plane )
+     plane = new AtomDecorator( plane )
+     plane.fire()
+```
+
+**核心代码&&例子：** 
+`AOP` 装饰函数
+
+``` javascript
+/*
+     * 装饰者模式
+     * AOP 装饰函数
+     * Function.prototype.before 方法和 Function.prototype.after 方法
+     */
+     Function.prototype.before = function (beforeFn) { // 在方法之前执行函数
+      var _self = this // 保存原函数的引用
+      return function () { // 返回包含原函数和新函数的“代理”函数
+        beforeFn.apply(this, arguments) // 执行新函数
+        return _self.apply(this, arguments) // 执行原函数
+      }
+     }
+
+     Function.prototype.after = function (afterFn) { // 在方法之后执行函数
+      var _self = this
+      return function () {
+        var ret = _self.apply(this, arguments)
+        afterFn.apply(this, arguments)
+        return ret
+      }
+     }
+
+     var fn1 = function () {
+       console.log('fn1')
+     }
+     fn1.before(function () {
+       console.log('fn2')
+     }).after(function () {
+       console.log('fn3')
+     })() // 输出： fn2 fn1 fn3
+```
+
+**核心代码&&例子：** 
+
+上面的` AOP` 实现是在 `Function.prototype` 上添加 `before `和 `after` 方法，但许 多人不喜欢这种污染原型的方式，那么我们可以做一些变通，把原函数和新函数都作为参数传入`before` 或者 `after` 方法
+
+``` javascript
+    /*
+     * 装饰者模式
+     * 非 AOP 实现类似 Function.prototype.before 和 Function.prototype.after 方法
+     */
+     var before = function (fn, beforeFn) { // 在 fn 之前执行
+      return function () {
+        beforeFn.apply(this, arguments)
+        return fn.apply(this, arguments)
+      }
+     }
+
+     var after = function (fn, afterFn) { // 在 fn 之后执行 
+      return function () {
+        var ret = fn.apply(this, arguments)
+        afterFn.apply(this, arguments)
+        return ret
+      }
+     }
+
+     // 例子
+     var fn1 = function () {
+       console.log('fn1')
+     }
+     var fn2 = function () {
+       console.log('fn2')
+     }
+     var fn3 = function () {
+       console.log('fn3')
+     }
+     after(before(fn1, fn2), fn3)() // fn2 fn1 fn3
+```
+

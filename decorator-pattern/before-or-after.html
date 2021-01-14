@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    /*
+     * 装饰者模式
+     * 非 AOP 实现类似 Function.prototype.before 和 Function.prototype.after 方法
+     */
+     var before = function (fn, beforeFn) { // 在 fn 之前执行
+      return function () {
+        beforeFn.apply(this, arguments)
+        return fn.apply(this, arguments)
+      }
+     }
+
+     var after = function (fn, afterFn) { // 在 fn 之后执行 
+      return function () {
+        var ret = fn.apply(this, arguments)
+        afterFn.apply(this, arguments)
+        return ret
+      }
+     }
+
+     // 例子
+     var fn1 = function () {
+       console.log('fn1')
+     }
+     var fn2 = function () {
+       console.log('fn2')
+     }
+     var fn3 = function () {
+       console.log('fn3')
+     }
+     after(before(fn1, fn2), fn3)() // fn2 fn1 fn3
+
+  </script>
+</body>
+</html>

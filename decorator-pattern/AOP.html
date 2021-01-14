@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    /*
+     * 装饰者模式
+     * AOP 装饰函数
+     * Function.prototype.before 方法和 Function.prototype.after 方法
+     */
+     Function.prototype.before = function (beforeFn) { // 在方法之前执行函数
+      var _self = this // 保存原函数的引用
+      return function () { // 返回包含原函数和新函数的“代理”函数
+        beforeFn.apply(this, arguments) // 执行新函数
+        return _self.apply(this, arguments) // 执行原函数
+      }
+     }
+
+     Function.prototype.after = function (afterFn) { // 在方法之后执行函数
+      var _self = this
+      return function () {
+        var ret = _self.apply(this, arguments)
+        afterFn.apply(this, arguments)
+        return ret
+      }
+     }
+
+     var fn1 = function () {
+       console.log('fn1')
+     }
+     fn1.before(function () {
+       console.log('fn2')
+     }).after(function () {
+       console.log('fn3')
+     })() // 输出： fn2 fn1 fn3
+
+  </script>
+</body>
+</html>
