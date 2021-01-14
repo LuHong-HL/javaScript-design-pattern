@@ -791,3 +791,148 @@
      chainFn1.passRequest() // 输出：1 2 3
 ```
 
+### 中介者模式
+
+**定义：** 
+
+**说明：** 中介者模式的作用就是解除对象与对象之间的紧耦合关系。增加一个中介者对象后，所有的相关对象都通过中介者对象来通信，而不是互相引用，所以当一个对象发生改变时，只需要通知中介者对象即可。中介者使各对象之间耦合松散，而且可以独立地改变它们之间的交互。中介者模式使网状的多对多关系变成了相对简单的一对多关系。不过，中介者模式也存在一些缺点。其中，最大的缺点是系统中会新增一个中介者对象，因 为对象之间交互的复杂性，转移成了中介者对象的复杂性，使得中介者对象经常是巨大的。中介者对象自身往往就是一个难以维护的对象。一般来说， 如果对象之间的复杂耦合确实导致调用和维护出现了困难，而且这些耦合度随项目的变化呈指数增长曲线，那我们就可以考虑用中介者模式来重构代码。
+
+**使用场景：** 多人竞技游戏
+
+**核心代码&&例子：** 
+
+``` javascript 
+    /*
+     * 中介者模式
+     * 多人竞技游戏例子
+     */
+
+      /**
+       * 玩家类
+       * @params {String} name 玩家名字
+       * @params {String} teamColor 玩家队伍颜色
+       */
+     function Player (name, teamColor) {
+      this.name = name
+      this.teamColor = teamColor
+      this.state = 'alive' //玩家生存状态
+     }
+     Player.prototype.win = function () { // 玩家胜利
+       console.log(this.name + 'won')
+     }
+     Player.prototype.lose = function () { // 玩家失败
+       console.log(this.name + 'lost')
+     }
+     Player.prototype.die = function () { // 玩家死亡
+       this.state = 'dead'
+       playerDirector.reciveMessage('playerDead', this) // 给中介者发送消息，玩家死亡
+     }
+     Player.prototype.remove = function () { //移除玩家
+      playerDirector.reciveMessage('removePlayer', this) // 给中介者发送消息，移除一个玩家      
+     }
+     Player.prototype.changeTeam = function (color) { //玩家切换队伍
+      playerDirector.reciveMessage('changeTeam', this, color) // 给中介者发送消息，玩家换队
+     }
+
+     /**
+      * 创建玩家类实例的工厂函数
+      * @params {String} name 玩家名字
+      * @params {String} teamColor 玩家队伍颜色
+      */
+     var playerFactory = function (name, teamColor) {
+      var newPlayer = new Player(name, teamColor)
+      playerDirector.reciveMessage('addPlayer', newPlayer) // 给中介者发送消息，新增玩家
+      return newPlayer
+     }
+
+     /**
+      * 中介者 playerDirector （这两种方式的实现没什么本质上的区别，使用方案二实现）
+      * 方案一、利用发布—订阅模式。将 playerDirector 实现为订阅者，各 player 作为发布者，一旦 player
+      * 的状态发生改变，便推送消息给 playerDirector，playerDirector 处理消息后将反馈发送给其他 player。
+      * 方案二、在 playerDirector 中开放一些接收消息的接口，各 player 可以直接调用该接口来给playerDirector 发送消息，
+      * player 只需传递一个参数给 playerDirector，这个参数的目的是使 playerDirector 可以识别发送者。同样，
+      * playerDirector 接收到消息之后会将处理结果反馈给其他 player。
+      */
+      var playerDirector = (function () {
+        var players = {} // 保存玩家的信息
+        var operations = {} // 中介者可以执行的操作
+
+        operations.addPlayer = function (player) { // 新增一个玩家
+          var teamColor = player.teamColor // 玩家队伍的颜色
+          players[teamColor] = players[teamColor] || [] // 如果该颜色的队伍没有，则创建一个队伍
+          players[teamColor].push(player) // 添加玩家进队伍
+        }
+        operations.removePlayer = function (player) { // 移除一个玩家
+          var teamColor = player.teamColor // 玩家队伍颜色
+          var teamPlayers = players[teamColor] || [] // 改颜色队伍的所有成员
+          for ( var i = teamPlayers.length - 1; i >= 0; i--) { // 遍历移除相应玩家
+            if (teamPlayers[i] === player) {
+              teamPlayers.splice(i, 1)
+            }
+          }
+        }
+        operations.changeTeam = function (player, newTeamColor) { // 玩家换队
+          operations.removePlayer(player) // 从原队伍中删除
+          player.teamColor = newTeamColor // 改变队伍颜色
+          operations.addPlayer(player) // 添加到新的队伍中
+        }
+        operations.playerDead = function (player) { // 玩家死亡
+          var teamColor = player.teamColor // 玩家队伍颜色
+          var teamPlayers = players[teamColor] // 玩家所在的队伍成员
+          var all_dead = true // 是否全部死亡，默认是
+
+          for (var i = 0, player; player = teamPlayers[i++];) { // 遍历检测队伍玩家是否全部死亡
+            if (player.state !== 'dead') {
+              all_dead = false
+              break
+            }
+          }
+          if (all_dead === true) { // 队伍玩家全部死亡
+            for (var i = 0, player; player = teamPlayers[i++];) {
+              player.lose() // 本队伍所有玩家 lose
+            }
+            for (var color in players) { // 其他队伍
+              if (color !== teamColor) {
+                var teamPlayers = players[color] // 其他队伍玩家
+                for (var i = 0, player; player = teamPlayers[i++];){
+                  player.win() // 其他队伍玩家 win
+                }
+              }
+            }
+          }
+        }
+
+        var reciveMessage = function () { // 接收的消息
+          var message = Array.prototype.shift.call(arguments) // arguments 第一个参数为消息名称
+          operations[message].apply(this, arguments) // 执行相应消息名称的操作
+        }
+
+        return { // 开放接口
+          reciveMessage: reciveMessage
+        }
+      })()
+      
+      // 例子
+      var player1 = playerFactory( 'player1 ', 'red' ) // 红队
+      var player2 = playerFactory( 'player2 ', 'red' )
+      var player3 = playerFactory( 'player3 ', 'red' )
+      var player4 = playerFactory( 'player4 ', 'red' )
+
+      var player5 = playerFactory( 'player5 ', 'blue' ) // 蓝队
+      var player6 = playerFactory( 'player6 ', 'blue' )
+      var player7 = playerFactory( 'player7 ', 'blue' )
+      var player8 = playerFactory( 'player8 ', 'blue' )
+
+      // 例子 输出：
+      // player3 lost
+      // player4 lost
+      // player5 won
+      // player6 won
+      // player7 won
+      // player8 won
+      // player1 won
+      player1.changeTeam('blue')
+      player2.remove()
+      player3.die()
+      player4.die()
+```
