@@ -1051,3 +1051,256 @@
      after(before(fn1, fn2), fn3)() // fn2 fn1 fn3
 ```
 
+### 状态模式
+
+**定义：** 允许一个对象在其内部状态改变时改变它的行为，对象看起来似乎修改了它的类。
+
+**说明：** 状态模式和策略模式像一对双胞胎，它们都封装了一系列的算法或者行为，它们的类图看起来几乎一模一样，但在意图上有很大不同，因此它们是两种迥然不同的模式。策略模式和状态模式的相同点是，它们都有一个上下文、一些策略或者状态类，上下文把请求委托给这些类来执行。它们之间的区别是策略模式中的各个策略类之间是平等又平行的，它们之间没有任何联系， 所以客户必须熟知这些策略类的作用，以便客户可以随时主动切换算法；而在状态模式中，状态和状态对应的行为是早已被封装好的，状态之间的切换也早被规定完成，“改变行为”这件事情 发生在状态模式内部。对客户来说，并不需要了解这些细节。这正是状态模式的作用所在。
+
+**使用场景：** 电灯的状态控制，文件上传的状态控制
+
+**核心代码&&例子：** 
+
+``` javascript 
+    /*
+     * 状态模式
+     * 电灯的例子
+     */
+
+    var State = function () {} // State抽象父类
+    State.prototype.buttonWasPressed = function () {
+      throw new Error('父类的 buttonWasPressed 方法必须被重写')
+    }
+
+     // 状态转换顺序： 弱光 -> 强光 -> 关灯 关灯 -> 弱光 不停循环
+    var OffLightState = function (light) { // 关灯状态
+      this.light = light
+    }
+    OffLightState.prototype = new State() // 继承 State抽象父类
+    OffLightState.prototype.buttonWasPressed = function () { // 按钮事件 
+      console.log('弱光')
+      this.light.setState(this.light.weakLightState) // 切换到弱光状态
+    }
+
+    var WeakLightState = function (light) { // 弱光状态
+      this.light = light
+    }
+    WeakLightState.prototype = new State() // 继承 State抽象父类
+    WeakLightState.prototype.buttonWasPressed = function () { // 按钮事件 
+      console.log('强光')
+      this.light.setState(this.light.strongLightState) // 切换到强光状态
+    }
+
+    var StrongLightState = function (light) { // 强光状态
+      this.light = light
+    }
+    StrongLightState.prototype = new State() // 继承 State抽象父类
+    StrongLightState.prototype.buttonWasPressed = function () { // 按钮事件 
+      console.log('关灯')
+      this.light.setState(this.light.offLightState) // 切换到关灯状态
+    }
+
+    var Light = function () { // Light 类
+      this.offLightState = new OffLightState(this)
+      this.weakLightState = new WeakLightState(this)
+      this.strongLightState = new StrongLightState(this)
+      this.button = null
+    }
+
+    Light.prototype.init = function () { // 初始化方法
+      var button = document.createElement('button')
+      var _self = this
+      this.button = document.body.appendChild(button)
+      this.button.innerHTML = '开关'
+      this.currentState = this.offLightState // 设置当前默认状态
+      this.button.onclick = function () { // 定义用户请求动作
+        _self.currentState.buttonWasPressed()
+      }
+    }
+    Light.prototype.setState = function (newState) { // 设置状态方法
+      this.currentState = newState
+    }
+
+    // 例子
+    var light = new Light()
+    light.init()
+```
+
+**核心代码&&例子：** 
+
+``` javascript
+    /*
+     * 状态模式
+     * 文件上传例子
+     */
+     // 提供 window.external.upload 函数，模拟创建上传插件
+     window.external.upload = function (state) {
+       console.log(state) // 可能为 sign、uploading、done、error
+     }
+     var plugin = (function () {
+       var plugin = document.createElement('embed')
+       plugin.style.display = 'none'
+       plugin.type = 'application/txftn-webkit'
+       plugin.sign = function () {
+         console.log('开始文件扫描')
+       }
+       plugin.pause = function () {
+         console.log('暂停文件上传')
+       }
+       plugin.uploading = function () {
+         console.log('开始文件上传')
+       }
+       plugin.del = function () {
+         console.log('删除文件上传')
+       }
+       plugin.done = function () {
+         console.log('文件上传完成')
+       }
+       document.body.appendChild(plugin)
+       return plugin
+     })()
+
+     // 改造 Upload 构造函数，在构造函数中为每种状态子类都创建一个实例对象
+     var Upload = function (fileName) {
+       this.plugin = plugin
+       this.fileName = fileName
+       this.button1 = null
+       this.button2 = null
+       this.signState = new SignState(this) // 设置初始状态 waiting
+       this.uploadingState = new UploadingState(this)
+       this.pauseState = new PauseState(this)
+       this.doneState = new DoneState(this)
+       this.errorState = new ErrorState(this)
+       this.currState = this.signState // 设置当前状态
+     }
+
+     // Upload.prototype.init 方法负责往页面中创建跟上传流程有关的 DOM 节点，并开始绑定按钮的事件
+     Upload.prototype.init = function () {
+       var that = this
+       this.dom = document.createElement('div')
+       this.dom.innerHTML = `<span>文件名称：${this.fileName}</span>
+                            <button data-action="button1">扫描中</button>
+                            <button data-action="button2">删除</button>`
+       document.body.appendChild(this.dom)
+       this.button1 = this.dom.querySelector('[data-action = "button1"]')
+       this.button2 = this.dom.querySelector('[data-action = "button2"]')
+       this.bindEvent()
+     }
+
+     // 负责具体的按钮事件实现，在点击了按钮之后，Context 并不做任何具体的操作，而是把请求委托给当前的状态类来执行
+     Upload.prototype.bindEvent = function () {
+       var self = this
+       this.button1.onclick = function () {
+         self.currState.clickHandler1()
+       }
+       this.button2.onclick = function () {
+         self.currState.clickHandler2()
+       }
+     }
+
+     // 我们把状态对应的逻辑行为放在 Upload 类中
+     Upload.prototype.sign = function () {
+       this.plugin.sign()
+       this.currState = this.signState
+     }
+     Upload.prototype.uploading = function () {
+       this.button1.innerHTML = '正在上传，点击暂停'
+       this.plugin.uploading()
+       this.currState = this.uploadingState
+     }
+     Upload.prototype.pause = function () {
+       this.button1.innerHTML = '已暂停，点击继续上传'
+       this.plugin.pause()
+       this.currState = this.pauseState
+     }
+     Upload.prototype.done = function () {
+       this.button1.innerHTML = '上传完成'
+       this.plugin.done()
+       this.currState = this.doneState
+     }
+     Upload.prototype.error = function () {
+       this.button1.innerHTML = '上传失败'
+       this.currState = this.errorState
+     }
+     Upload.prototype.del = function () {
+       this.plugin.del()
+       this.dom.parentNode.removeChild(this.dom)
+     }
+
+     // 我们要编写各个状态类的实现。值得注意的是，我们使用了 StateFactory ，从而避免因为 JavaScript 中没有抽象类所带来的问题
+     var StateFactory = (function () {
+      var State = function () {}
+      State.prototype.clickHandler1 = function () {
+        throw new Error('子类必须重写父类的 clickHandler1 方法')
+      }
+      State.prototype.clickHandler2 = function () {
+        throw new Error('子类必须重写父类的 clickHandler2 方法')
+      }
+      return function (param) {
+        var Fn = function (uploadObj) {
+          this.uploadObj = uploadObj
+        }
+        Fn.prototype = new State()
+        for (var i in param) {
+          Fn.prototype[i] = param[i]
+        }
+        return Fn
+      }
+     })()
+    
+    var SignState = StateFactory({
+      clickHandler1: function () {
+        console.log('扫描中，点击无效...')
+      },
+      clickHandler2: function () {
+        console.log('文件正在上传中，不能删除')
+      }
+    })
+    var UploadingState = StateFactory({
+      clickHandler1: function () {
+        this.uploadObj.pause()
+      },
+      clickHandler2: function () {
+        console.log('文件正在上传中，不能删除')
+      }
+    })
+    var PauseState = StateFactory({
+      clickHandler1: function () {
+        this.uploadObj.uploading()
+      },
+      clickHandler2: function () {
+        this.uploadObj.del()
+      }
+    })
+    var DoneState = StateFactory({
+      clickHandler1: function () {
+        console.log('文件已完成上传，点击无效')
+      },
+      clickHandler2: function () {
+        this.uploadObj.del()
+      }
+    })
+    var ErrorState = StateFactory({
+      clickHandler1: function () {
+        console.log('文件上传失败，点击无效')
+      },
+      clickHandler2: function () {
+        this.uploadObj.del()
+      }
+    })
+
+    // 测试
+    var uploadObj = new Upload('文件名')
+    uploadObj.init()
+    window.external.upload = function(state) {
+      uploadObj[state]()
+    }
+    window.external.upload('sign')
+    setTimeout(function () {
+      window.external.upload('uploading') // 一秒后开始上传
+    }, 1000)
+    setTimeout(function () {
+      window.external.upload('done') // 五秒后开始上传
+    }, 5000)
+```
+
