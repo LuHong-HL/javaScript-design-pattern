@@ -1304,3 +1304,44 @@
     }, 5000)
 ```
 
+### 适配器模式
+
+**说明：** 适配器模式的作用是解决两个软件实体间的接口不兼容的问题。使用适配器模式之后，原本由于接口不兼容而不能工作的两个软件实体可以一起工作。适配器的别名是包装器（wrapper），这是一个相对简单的模式。在程序开发中有许多这样的场景：当我们试图调用模块或者对象的某个接口时，却发现这个接口的格式并不符合目前的需求。 这时候有两种解决办法，第一种是修改原来的接口实现，但如果原来的模块很复杂，或者我们拿到的模块是一段别人编写的经过压缩的代码，修改原接口就显得不太现实了。第二种办法是创建一个适配器，将原接口转换为客户希望的另一个接口，客户只需要和适配器打交道。
+
+**使用场景：** 接口数据的适配，接口的适配
+
+**核心代码&&例子：** 
+
+``` javascript 
+    /*
+     * 适配器模式
+     * 适配第三方方法名
+     */
+     // renderMap 需要的方法名是 show() ,而第三方给的却不是
+     var renderMap = function (map) { // 渲染地图
+       if (map.show instanceof Function) {
+         map.show()
+       }
+     }
+
+     var googleMap = {
+       show: function () {
+         console.log('开始渲染谷歌地图')
+       }
+     }
+     var baiduMap = {
+       display: function () {
+         console.log('开始渲染百度地图')
+       }
+     }
+
+     var baiduMapAdapter = { // 百度地图适配器
+       show: function () {
+         return baiduMap.display()
+       }
+     }
+
+     // 测试
+     renderMap(googleMap) // 开始渲染谷歌地图
+     renderMap(baiduMapAdapter) // 开始渲染百度地图
+```

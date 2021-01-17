@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <script>
+    /*
+     * 适配器模式
+     * 适配第三方方法名
+     */
+     // renderMap 需要的方法名是 show() ,而第三方给的却不是
+     var renderMap = function (map) { // 渲染地图
+       if (map.show instanceof Function) {
+         map.show()
+       }
+     }
+
+     var googleMap = {
+       show: function () {
+         console.log('开始渲染谷歌地图')
+       }
+     }
+     var baiduMap = {
+       display: function () {
+         console.log('开始渲染百度地图')
+       }
+     }
+
+     var baiduMapAdapter = { // 百度地图适配器
+       show: function () {
+         return baiduMap.display()
+       }
+     }
+
+     // 测试
+     renderMap(googleMap) // 开始渲染谷歌地图
+     renderMap(baiduMapAdapter) // 开始渲染百度地图
+     
+  </script>
+</body>
+</html>
